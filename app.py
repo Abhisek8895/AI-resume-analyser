@@ -8,13 +8,15 @@ st.set_page_config(
     layout="centered"
 )
 
+from utils import preprocess_text
+
 # Title
 st.title("AI Resume Analyzer")
 
 # File uploader
 uploaded_file = st.file_uploader(
     "Upload Your Resume",
-    type=["pdf", "docx"]
+    type=["pdf"]
 )
 
 
@@ -64,4 +66,8 @@ if uploaded_file is not None:
             st.warning("Please enter a job description.")
 
         else:
-            st.write("Analysis will start here...")
+            # st.write("Analysis will start here...")
+            clean_resume = preprocess_text(resume_text)
+            clean_jd = preprocess_text(job_description)
+
+            st.write("Text preprocessing completed ✅")
