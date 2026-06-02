@@ -9,6 +9,7 @@ st.set_page_config(
 )
 
 from utils import preprocess_text
+from analyzer import calculate_similarity
 
 # Title
 st.title("AI Resume Analyzer")
@@ -70,4 +71,5 @@ if uploaded_file is not None:
             clean_resume = preprocess_text(resume_text)
             clean_jd = preprocess_text(job_description)
 
-            st.write("Text preprocessing completed ✅")
+            score = calculate_similarity(clean_resume, clean_jd)
+            st.metric("Resume Match Score", f"{score}%")
