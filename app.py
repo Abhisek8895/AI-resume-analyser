@@ -9,7 +9,7 @@ st.set_page_config(
 )
 
 from utils import preprocess_text
-from analyzer import calculate_similarity
+from analyzer import calculate_similarity,get_ats_grade,get_ats_feedback
 
 # Title
 st.title("AI Resume Analyzer")
@@ -72,4 +72,11 @@ if uploaded_file is not None:
             clean_jd = preprocess_text(job_description)
 
             score = calculate_similarity(clean_resume, clean_jd)
-            st.metric("Resume Match Score", f"{score}%")
+            grade = get_ats_grade(score)
+            feedback = get_ats_feedback(score)
+
+            st.metric("ATS Score", f"{score:.2f}%")
+
+            st.success(f"Grade: {grade}")
+
+            st.info(feedback)

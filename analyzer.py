@@ -27,3 +27,27 @@ def calculate_similarity(resume_text, jd_text):
     except Exception as e:
         print("Similarity Error:", e)
         raise
+
+def get_ats_grade(score):
+    if score < 40:
+        return "Poor"
+    elif score < 60:
+        return "Average"
+    elif score < 75:
+        return "Good"
+    elif score < 90:
+        return "Very Good"
+    else:
+        return "Excellent"
+    
+def get_ats_feedback(score):
+    if score < 40:
+        return "Your resume is not aligned with this job role."
+    elif score < 60:
+        return "Partial match. Improve skills and projects."
+    elif score < 75:
+        return "Good match. A few improvements can help."
+    elif score < 90:
+        return "Strong match. Well aligned with the JD."
+    else:
+        return "Excellent match. Highly recommended profile."
