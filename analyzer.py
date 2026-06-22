@@ -1,5 +1,10 @@
-from sklearn.feature_extraction.text import TfidfVectorizer 
+from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+
+# Load model for embeddings
+model = SentenceTransformer(
+    "sentence-transformers/all-MiniLM-L6-v2"
+)
 
 def calculate_similarity(resume_text, jd_text):
 
@@ -7,15 +12,14 @@ def calculate_similarity(resume_text, jd_text):
         return 0
 
     try:
-        vectorizer = TfidfVectorizer()
+        # Convert text to embeddings
+        resume_embedding = model.encode(resume_text)
+        jd_embedding = model.encode(jd_text)
 
-        vectors = vectorizer.fit_transform(
-            [resume_text, jd_text]
-        )
-
+        # Calculate cosine similarity
         similarity = cosine_similarity(
-            vectors[0:1],
-            vectors[1:2]
+            [resume_embedding],
+            [jd_embedding]
         )[0][0]
 
         return round(similarity * 100, 2)
