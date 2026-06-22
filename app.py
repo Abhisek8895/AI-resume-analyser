@@ -10,6 +10,7 @@ st.set_page_config(
 
 from utils import preprocess_text
 from analyzer import calculate_similarity,get_ats_grade,get_ats_feedback
+from skills import extract_skills,get_matching_skills,get_missing_skills
 
 # Title
 st.title("AI Resume Analyzer")
@@ -68,10 +69,7 @@ if uploaded_file is not None:
 
         else:
             # st.write("Analysis will start here...")
-            clean_resume = preprocess_text(resume_text)
-            clean_jd = preprocess_text(job_description)
-
-            score = calculate_similarity(clean_resume, clean_jd)
+            score = calculate_similarity(resume_text,job_description)
             grade = get_ats_grade(score)
             feedback = get_ats_feedback(score)
 
@@ -80,3 +78,28 @@ if uploaded_file is not None:
             st.success(f"Grade: {grade}")
 
             st.info(feedback)
+
+            clean_resume = preprocess_text(resume_text)
+            clean_jd = preprocess_text(job_description)
+
+            resume_skills = extract_skills(clean_resume)
+            jd_skills = extract_skills(clean_jd)
+
+            matched_skills = get_matching_skills(resume_skills, jd_skills)
+            missing_skills = get_missing_skills(resume_skills, jd_skills)
+
+            st.subheader("🧠 Skills Analysis")
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.write(
+                    f"Matched Skills ({len(matched_skills)}):\n\n"
+                    + ", ".join(skill.title() for skill in matched_skills)
+                )
+
+            with col2:
+                st.write(
+                    f"Missing Skills ({len(missing_skills)}):\n\n"
+                    + ", ".join(skill.title() for skill in missing_skills)
+                )
