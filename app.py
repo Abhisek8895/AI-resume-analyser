@@ -15,9 +15,8 @@ from skills import extract_skills,get_matching_skills,get_missing_skills
 # Title
 st.title("AI Resume Analyzer")
 
-# File uploader
 uploaded_file = st.file_uploader(
-    "Upload Your Resume",
+    "Upload Your Resume (PDF only)",
     type=["pdf"]
 )
 
@@ -43,14 +42,18 @@ def extract_pdf_text(file):
 if uploaded_file is not None:
 
     # Get file extension
-    file_type = uploaded_file.name.split(".")[-1]
+    file_type = uploaded_file.name.split(".")[-1].lower()
 
     # Extract text
     if file_type == "pdf":
         resume_text = extract_pdf_text(uploaded_file)
 
     else:
-        resume_text = ""
+        st.error(
+            f"'.{file_type}' files are not supported yet. "
+            "Please upload a PDF resume."
+        )
+        st.stop()
 
     # Success message
     st.success("Resume parsed successfully ✅")
