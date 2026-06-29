@@ -11,6 +11,8 @@ st.set_page_config(
 from utils import preprocess_text
 from analyzer import calculate_similarity,get_ats_grade,get_ats_feedback
 from skills import extract_skills,get_matching_skills,get_missing_skills
+from sections import detect_sections, check_required_sections, REQUIRED_SECTIONS
+from contact import check_contact_info
 
 # Title
 st.title("AI Resume Analyzer")
@@ -55,8 +57,47 @@ if uploaded_file is not None:
         )
         st.stop()
 
+    if not resume_text.strip():
+        st.error(
+            "Couldn't extract any text from this PDF. "
+            "It might be a scanned/image-based resume rather than a "
+            "text-based one. Please upload a text-based PDF."
+        )
+        st.stop()
+
     # Success message
     st.success("Resume parsed successfully ✅")
+
+    sections = detect_sections(resume_text)
+    
+    found_sections, missing_sections = check_required_sections(sections)
+    contact_result = check_contact_info(resume_text)
+
+    st.subheader("📋 Resume Structure Check")
+
+    for section in REQUIRED_SECTIONS:
+        if section in found_sections:
+            st.markdown(f"✅ **{section.title()}** section detected")
+        else:
+            st.markdown(
+                f"⚠️ **{section.title()}** section not detected "
+                "(this may be a false alarm if your heading is phrased unusually)"
+            )
+
+    if contact_result["has_contact_info"]:
+        contact_parts = []
+        if contact_result["email"]:
+            contact_parts.append(f"email: {contact_result['email']}")
+        if contact_result["phone"]:
+            contact_parts.append(f"phone: {contact_result['phone']}")
+        st.markdown(f"✅ **Contact info** detected ({', '.join(contact_parts)})")
+    else:
+        st.markdown(
+            "⚠️ **Contact info** not detected — make sure your email "
+            "and/or phone number are clearly visible near the top of your resume"
+        )
+
+    st.divider()
 
     # Job description input
     job_description = st.text_area(
@@ -71,38 +112,45 @@ if uploaded_file is not None:
             st.warning("Please enter a job description.")
 
         else:
-            # st.write("Analysis will start here...")
-            score = calculate_similarity(resume_text,job_description)
-            grade = get_ats_grade(score)
-            feedback = get_ats_feedback(score)
+            try:
+                score = calculate_similarity(resume_text,job_description)
+                grade = get_ats_grade(score)
+                feedback = get_ats_feedback(score)
 
-            st.metric("ATS Score", f"{score:.2f}%")
+                st.metric("ATS Score", f"{score:.2f}%")
 
-            st.success(f"Grade: {grade}")
+                st.success(f"Grade: {grade}")
 
-            st.info(feedback)
+                st.info(feedback)
 
-            clean_resume = preprocess_text(resume_text)
-            clean_jd = preprocess_text(job_description)
+                clean_resume = preprocess_text(resume_text)
+                clean_jd = preprocess_text(job_description)
 
-            resume_skills = extract_skills(clean_resume)
-            jd_skills = extract_skills(clean_jd)
+                resume_skills = extract_skills(clean_resume)
+                jd_skills = extract_skills(clean_jd)
 
-            matched_skills = get_matching_skills(resume_skills, jd_skills)
-            missing_skills = get_missing_skills(resume_skills, jd_skills)
+                matched_skills = get_matching_skills(resume_skills, jd_skills)
+                missing_skills = get_missing_skills(resume_skills, jd_skills)
 
-            st.subheader("🧠 Skills Analysis")
+                st.subheader("🧠 Skills Analysis")
 
-            col1, col2 = st.columns(2)
+                col1, col2 = st.columns(2)
 
-            with col1:
-                st.write(
-                    f"Matched Skills ({len(matched_skills)}):\n\n"
-                    + ", ".join(skill.title() for skill in matched_skills)
+                with col1:
+                    st.write(
+                        f"Matched Skills ({len(matched_skills)}):\n\n"
+                        + ", ".join(skill.title() for skill in matched_skills)
+                    )
+
+                with col2:
+                    st.write(
+                        f"Missing Skills ({len(missing_skills)}):\n\n"
+                        + ", ".join(skill.title() for skill in missing_skills)
+                    )
+
+            except Exception as e:
+                st.error(
+                    "Something went wrong while analyzing your resume. "
+                    "Please try again, or try a different PDF."
                 )
-
-            with col2:
-                st.write(
-                    f"Missing Skills ({len(missing_skills)}):\n\n"
-                    + ", ".join(skill.title() for skill in missing_skills)
-                )
+                print(f"[Analysis error] {type(e).__name__}: {e}")
