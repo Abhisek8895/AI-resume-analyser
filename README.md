@@ -279,7 +279,7 @@ pip install -r requirements.txt
 
 **Abhisek Mishra**
 
-Aspiring AI Engineer | Generative AI | Machine Learning | Python Developer
+Aspiring AI/ML Engineer | Generative AI | Machine Learning | Python Developer
 
 - LinkedIn: https://www.linkedin.com/in/abhisek-mishra-
 - GitHub: https://github.com/Abhisek8895
