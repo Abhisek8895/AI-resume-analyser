@@ -14,6 +14,7 @@ from skills import extract_skills,get_matching_skills,get_missing_skills
 from sections import detect_sections, check_required_sections, REQUIRED_SECTIONS
 from contact import check_contact_info
 from quality import analyze_section
+from rewrite import rewrite_bullet
 
 # Title
 st.title("AI Resume Analyzer")
@@ -105,8 +106,10 @@ if uploaded_file is not None:
         height=200
     )
 
-    # Analyze button
     if st.button("Analyze Resume"):
+        st.session_state["analyzed"] = True
+
+    if st.session_state.get("analyzed"):
 
         if job_description.strip() == "":
             st.warning("Please enter a job description.")
@@ -165,7 +168,9 @@ if uploaded_file is not None:
                     any_bullets_checked = True
                     st.markdown(f"**{sec_name.title()}**")
 
-                    for r in bullet_results:
+                    for idx, r in enumerate(bullet_results):
+                        state_key = f"rewrite_{sec_name}_{idx}"
+
                         if r["weak_verb"] or not r["has_metric"]:
                             st.markdown(f"⚠️ {r['text']}")
                             if r["weak_verb"]:
@@ -179,6 +184,22 @@ if uploaded_file is not None:
                                     "No number/metric found — consider "
                                     "quantifying the impact (%, count, time saved, etc.)"
                                 )
+
+                            if state_key in st.session_state:
+                                st.success(f"✨ {st.session_state[state_key]}")
+                            else:
+                                if st.button("✨ Rewrite this", key=f"btn_{state_key}"):
+                                    try:
+                                        with st.spinner("Rewriting..."):
+                                            rewritten = rewrite_bullet(r["text"])
+                                        st.session_state[state_key] = rewritten
+                                        st.rerun()
+                                    except Exception as e:
+                                        st.error(
+                                            "Couldn't generate a rewrite right now. "
+                                            "Please try again."
+                                        )
+                                        print(f"[Rewrite error] {type(e).__name__}: {e}")
                         else:
                             st.markdown(f"✅ {r['text']}")
 
