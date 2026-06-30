@@ -13,6 +13,7 @@ from analyzer import calculate_similarity,get_ats_grade,get_ats_feedback
 from skills import extract_skills,get_matching_skills,get_missing_skills
 from sections import detect_sections, check_required_sections, REQUIRED_SECTIONS
 from contact import check_contact_info
+from quality import analyze_section
 
 # Title
 st.title("AI Resume Analyzer")
@@ -69,7 +70,6 @@ if uploaded_file is not None:
     st.success("Resume parsed successfully ✅")
 
     sections = detect_sections(resume_text)
-    
     found_sections, missing_sections = check_required_sections(sections)
     contact_result = check_contact_info(resume_text)
 
@@ -146,6 +146,47 @@ if uploaded_file is not None:
                     st.write(
                         f"Missing Skills ({len(missing_skills)}):\n\n"
                         + ", ".join(skill.title() for skill in missing_skills)
+                    )
+
+                st.subheader("✍️ Bullet Point Quality")
+
+                quality_sections = ["experience", "projects"]
+                any_bullets_checked = False
+
+                for sec_name in quality_sections:
+                    if sec_name not in sections:
+                        continue
+
+                    bullet_results = analyze_section(sections[sec_name])
+
+                    if not bullet_results:
+                        continue
+
+                    any_bullets_checked = True
+                    st.markdown(f"**{sec_name.title()}**")
+
+                    for r in bullet_results:
+                        if r["weak_verb"] or not r["has_metric"]:
+                            st.markdown(f"⚠️ {r['text']}")
+                            if r["weak_verb"]:
+                                suggestion_text = ", ".join(r["suggestions"])
+                                st.caption(
+                                    f"Weak phrase: \"{r['weak_verb']}\" — "
+                                    f"try instead: {suggestion_text}"
+                                )
+                            if not r["has_metric"]:
+                                st.caption(
+                                    "No number/metric found — consider "
+                                    "quantifying the impact (%, count, time saved, etc.)"
+                                )
+                        else:
+                            st.markdown(f"✅ {r['text']}")
+
+                if not any_bullets_checked:
+                    st.caption(
+                        "No bullet points detected in Experience/Projects "
+                        "sections to check (make sure bullets start with "
+                        "-, •, or *)."
                     )
 
             except Exception as e:

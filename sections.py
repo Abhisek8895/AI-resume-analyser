@@ -43,11 +43,15 @@ def _clean_line(line):
 
 
 def _match_heading(cleaned_line):
-    """Return the canonical section name if cleaned_line matches a
-    known heading alias exactly, otherwise None."""
+    no_space_line = cleaned_line.replace(" ", "")
+
     for canonical, aliases in SECTION_ALIASES.items():
         if cleaned_line in aliases:
             return canonical
+        # Fallback: compare with spaces stripped from both sides
+        if any(no_space_line == alias.replace(" ", "") for alias in aliases):
+            return canonical
+
     return None
 
 def detect_sections(resume_text):
